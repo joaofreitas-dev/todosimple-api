@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 @Entity
@@ -28,17 +30,18 @@ public class User {
     private String username;
 
     @Column(name = "password", length = 60, nullable = false)
-    @NotBlank(groups = {CreateUser.class, UpdateUser.class})
-    @Size(groups = {CreateUser.class, UpdateUser.class}, min = 8, max = 60)
+    @NotBlank(groups = { CreateUser.class, UpdateUser.class })
+    @Size(groups = { CreateUser.class, UpdateUser.class }, min = 8, max = 60)
     private String password;
 
-    // private List<Task> tasks = new ArrayList<>();
-
+    @OneToMany(mappedBy = "user")
+    private List<Task> tasks = new ArrayList<>();
 
     public User(Long id, String username, String password) {
         this.id = id;
         this.username = username;
         this.password = password;
+
     }
 
     public Long getId() {
@@ -65,16 +68,28 @@ public class User {
         this.password = password;
     }
 
+    public List<Task> getTasks() {
+        return this.tasks;
+    }
+
+    public void setTasks(List<Task> tasks) {
+        this.tasks = tasks;
+    }
+
     @Override
     public boolean equals(Object obj) {
-        if (obj == this) return true;
-        if (obj == null) return false;
-        if (!(obj instanceof User)) return false;
+        if (obj == this)
+            return true;
+        if (obj == null)
+            return false;
+        if (!(obj instanceof User))
+            return false;
         User other = (User) obj;
         if (this.id == null)
             if (other.id != null)
                 return false;
-            else if (!this.id.equals(other.id)) return false;
+            else if (!this.id.equals(other.id))
+                return false;
 
         return Objects.equals(this.id, other.id) && Objects.equals(this.username, other.username)
                 && Objects.equals(this.password, other.password);
