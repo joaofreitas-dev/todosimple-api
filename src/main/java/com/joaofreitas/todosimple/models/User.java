@@ -8,6 +8,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonProperty.Access;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 @Entity
 @Table(name = User.TABLE_NAME)
 public class User {
@@ -29,6 +33,7 @@ public class User {
     @Column(name = "username", length = 100, nullable = false, unique = true)
     private String username;
 
+    @JsonProperty(access = Access.WRITE_ONLY)
     @Column(name = "password", length = 60, nullable = false)
     @NotBlank(groups = { CreateUser.class, UpdateUser.class })
     @Size(groups = { CreateUser.class, UpdateUser.class }, min = 8, max = 60)
@@ -36,6 +41,10 @@ public class User {
 
     @OneToMany(mappedBy = "user")
     private List<Task> tasks = new ArrayList<>();
+
+    public User() {
+
+    }
 
     public User(Long id, String username, String password) {
         this.id = id;
@@ -68,6 +77,7 @@ public class User {
         this.password = password;
     }
 
+    @JsonIgnore
     public List<Task> getTasks() {
         return this.tasks;
     }
