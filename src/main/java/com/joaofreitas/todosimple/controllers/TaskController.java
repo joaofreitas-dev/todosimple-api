@@ -46,7 +46,7 @@ public class TaskController {
     public ResponseEntity<Void> create(@Valid @RequestBody Task obj) {
         this.taskServices.create(obj);
         URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(obj.getId()).toUri();
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.created(uri).build();
     }
 
     @PutMapping("/{id}")
