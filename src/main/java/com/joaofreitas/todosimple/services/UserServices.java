@@ -10,15 +10,11 @@ import com.joaofreitas.todosimple.repositories.UserRepository;
 import jakarta.transaction.Transactional;
 
 import com.joaofreitas.todosimple.models.User;
-import com.joaofreitas.todosimple.repositories.TaskRepository;
 
 @Service
 public class UserServices {
     @Autowired
     private UserRepository userRepository;
-
-    @Autowired
-    private TaskRepository taskRepository;
 
     public User findById(Long id) {
         Optional<User> user = this.userRepository.findById(id);
@@ -30,7 +26,6 @@ public class UserServices {
     public User create(User obj) {
         obj.setId(null);
         obj = this.userRepository.save(obj);
-        this.taskRepository.saveAll(obj.getTasks());
         return obj;
     }
 
@@ -47,7 +42,7 @@ public class UserServices {
         try {
             this.userRepository.deleteById(id);
         } catch (Exception e) {
-            throw new RuntimeException("Não é possível excluir pois a entidades relacionadas!");
+            throw new RuntimeException("Não é possível excluir pois há entidades relacionadas!");
         }
     }
 
