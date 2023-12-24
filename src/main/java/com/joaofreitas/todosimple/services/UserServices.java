@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.joaofreitas.todosimple.repositories.UserRepository;
+import com.joaofreitas.todosimple.services.exceptions.DataBindingViolationException;
+import com.joaofreitas.todosimple.services.exceptions.ObjectNotFoundException;
 
 import jakarta.transaction.Transactional;
 
@@ -19,7 +21,8 @@ public class UserServices {
     public User findById(Long id) {
         Optional<User> user = this.userRepository.findById(id);
         return user.orElseThrow(
-                () -> new RuntimeException("Usuário não encontrado! Id: " + id + ", Tipo: " + User.class.getName()));
+                () -> new ObjectNotFoundException(
+                        "Usuário não encontrado! Id: " + id + ", Tipo: " + User.class.getName()));
     }
 
     @Transactional
@@ -42,7 +45,7 @@ public class UserServices {
         try {
             this.userRepository.deleteById(id);
         } catch (Exception e) {
-            throw new RuntimeException("Não é possível excluir pois há entidades relacionadas!");
+            throw new DataBindingViolationException("Não é possível excluir pois há entidades relacionadas!");
         }
     }
 
