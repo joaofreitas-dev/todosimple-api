@@ -1,14 +1,18 @@
 package com.joaofreitas.todosimple.configs;
 
+import com.joaofreitas.todosimple.security.JWTUtil;
 import java.util.Arrays;
-
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
@@ -19,34 +23,48 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfig {
-        private static final String[] PUBLIC_MATCHERS = {
-                        "/"
-        };
 
-        private static final String[] PUBLIC_MATCHERS_POST = {
-                        "/user",
-                        "/login"
-        };
+        private AuthenticationManager authenticationManager;
+
+        @Autowired
+        private UserDetailsService userDetailsService;
+
+        @Autowired
+        private JWTUtil jwtUtil;
+
+        private static final String[] PUBLIC_MATCHERS = { "/" };
+
+        private static final String[] PUBLIC_MATCHERS_POST = { "/user", "/login" };
 
         @Bean
         public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-                return http.authorizeHttpRequests(
-                                authorizeConfig -> {
-                                        authorizeConfig.requestMatchers(HttpMethod.POST, PUBLIC_MATCHERS_POST)
+
+                AuthenticationManagerBuilder authenticationManagerBuilder = http
+                                .getSharedObject(AuthenticationManagerBuilder.class);
+                authenticationManagerBuilder.userDetailsService(this.userDetailsService)
+                                .passwordEncoder(bCryptPasswordEncoder());
+                this.authenticationManager = authenticationManagerBuilder.build();
+
+                http
+                                .authorizeHttpRequests(authorizeConfig -> {
+                                        authorizeConfig
+                                                        .requestMatchers(HttpMethod.POST, PUBLIC_MATCHERS_POST)
                                                         .permitAll();
                                         authorizeConfig.requestMatchers(PUBLIC_MATCHERS).permitAll();
                                         authorizeConfig.anyRequest().authenticated();
                                 })
                                 .csrf(csrf -> csrf.disable())
                                 .sessionManagement(session -> session
-                                                .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                                .build();
+                                                .sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+                return http.build();
         }
 
         @Bean
         CorsConfigurationSource corsConfigurationSource() {
-                CorsConfiguration configuration = new CorsConfiguration().applyPermitDefaultValues();
-                configuration.setAllowedMethods(Arrays.asList("POST", "GET", "PUT", "DELETE"));
+                CorsConfiguration configuration = new CorsConfiguration()
+                                .applyPermitDefaultValues();
+                configuration.setAllowedMethods(
+                                Arrays.asList("POST", "GET", "PUT", "DELETE"));
                 final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
                 source.registerCorsConfiguration("/**", configuration);
                 return source;
